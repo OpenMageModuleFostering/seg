@@ -1,41 +1,62 @@
 <?xml version="1.0"?>
 <package>
-    <name>seg</name>
-    <version>1.0.0.0</version>
+    <name>Seg</name>
+    <version>1.1.1.1</version>
     <stability>stable</stability>
     <license uri="http://opensource.org/licenses/osl-3.0.php">Open Software License (OSL 3.0)</license>
     <channel>community</channel>
     <extends/>
-    <summary>Easily and automatically make more revenue from MailChimp by understanding customer preferences and behaviour.</summary>
-    <description>Seg makes Magento and MailChimp really work together. If you run an Magento store and use MailChimp, you really need to use Seg; it will transform the effectiveness of your email marketing campaigns in MailChimp. &#xD;
+    <summary>Seg unlocks the potential of your Magento user data to supercharge your email marketing. Install free today.</summary>
+    <description>Seg transforms the effectiveness of your email marketing by seamlessly integrating with and enhancing the marketing software you already use. &#xD;
 &#xD;
- = What does Seg do? = &#xD;
-Seg for Magento + MailChimp captures all your visitors behaviour from their email, web browsing and orders and turns that into rich profiles of their preferences for your categories &amp; products, and how likely they are to respond to emails, offers and more. &#xD;
+By recording your onsite customer behaviour and looking at past order history, you can **create custom automated marketing workflows** that really work for your business. &#xD;
 &#xD;
-You can then create your campaign in MailChimp as normal, but you use Seg to target the right customers for your content based on a wide range of factors including: &#xD;
- - How much money you want to make from your campaign (we predict that too!)  &#xD;
-- How relevant the content is to your customers (customers who have "shown an interest" vs. "love" category/brand X) &#xD;
-- Whether they've bought recently &#xD;
-- Whether they've visited recently &#xD;
-- And so much more. &#xD;
+Some recommended workflows to get you started: &#xD;
+- **Cart abandonment** email series  &#xD;
+- **Browse recovery** email series &#xD;
+- **Win back customers** who haven't shopped for a while &#xD;
+- **Treat your VIPs** with exclusive offers and content &#xD;
+- **Email relevant content** based on behaviour, order history and shopping preferences. &#xD;
 &#xD;
- You can also: &#xD;
- - See how much revenue and profit your MailChimp campaigns have made in detail &#xD;
-- See your customers in real time and what they are doing on your website &#xD;
-- See a detailed profile for every customer that has ever visited or bought from your store and what their preferences are &#xD;
-- See exactly how you can improve your email marketing (through MailChimp), inlcuding how much money you could make &#xD;
-- See your campaign performance over time via our email analytics system &#xD;
+Send fewer, more targeted emails to maximise email conversion rates. That means, no more bulk emails with low open rates. That means, less time spent on campaign design and planning. &#xD;
 &#xD;
-Seg automatically does this for you: &#xD;
- - Tracks all customers behaviour and orders &#xD;
-- Protects you from over-emailing your customers (you set the limit) &#xD;
-- Predicts the revenue you will make from a campaign (knowing individual customer's behaviours and preferences) so you can tailor the audience to make the most money &#xD;
-- Rates each campaign (as 1-5 stars) so you can easily find the best campaigns and improve them / resend them / use for inspiration in the future</description>
-    <notes>First stable release.</notes>
-    <authors><author><name>Seg</name><user>KoanLeeroy</user><email>Lee@koan.is</email></author></authors>
-    <date>2015-07-31</date>
-    <time>13:30:44</time>
-    <contents><target name="magecommunity"><dir name="Koan"><dir name="Seg"><dir name="Block"><dir name="Adminhtml"><dir name="Exporter"><dir name="Grid"><dir name="Renderer"><file name="Status.php" hash="bab35c7c04bfb7b2ca628a08f9d0b9cf"/></dir></dir><file name="Grid.php" hash="5c4d9013851c80b14d9240e800cc5f54"/></dir><file name="Exporter.php" hash="c8ad547a58f8bd3b56d1d18627389e32"/></dir><file name="Header.php" hash="bd07e0f326730dd7ccb796eb2f33a1c7"/><file name="Track.php" hash="b04e1d5090b6c6f9e2d34a46ac31c9ae"/></dir><dir name="Helper"><file name="Data.php" hash="147ac05f825ce5dcf11f104ea629d0c4"/></dir><dir name="Model"><dir name="Batch"><file name="Status.php" hash="1eebea45e69dbf320a871ef535c49772"/></dir><dir name="Exception"><file name="Handler.php" hash="60cef7aef2b276fbd42d17f5406a4d64"/></dir><file name="Logger.php" hash="d2f267ea04603190d30dbcf185b6651f"/><file name="Observer.php" hash="faad57341c555ba99061605c0562a907"/><dir name="Resource"><dir name="Batch"><dir name="Status"><file name="Collection.php" hash="814df925981a77007df1d7710d407ec5"/></dir><file name="Status.php" hash="f96826a954f09bc9fc67e97f14dec207"/></dir></dir><dir name="Seg"><file name="Basket.php" hash="00c1c6b1ddeb5300b5d79d7793a4e7c9"/><file name="Client.php" hash="8c0563b5e1103a9b7991a13c5f8051d3"/><file name="Customer.php" hash="fc8c59e8cd5daaa7fd6a839c3be8ab11"/><file name="Exporter.php" hash="8201cddf650385f0371a41b5654a5176"/><dir name="Order"><file name="Line.php" hash="c2acaea156dcaedf8dbe50f3c98987e2"/></dir><file name="Order.php" hash="d3af49ea2c8a5c09829ff3f712c0058d"/><file name="Product.php" hash="dba1f75f98972013113392df55273922"/><dir name="Quote"><file name="Line.php" hash="352335afd649295052173e4c4d177e3c"/></dir><file name="Range.php" hash="81b1eed35211554c2a76df4160ff992a"/></dir></dir><dir name="controllers"><dir name="Adminhtml"><file name="SegController.php" hash="5c3fa5c56c91dff79a46fe862baf94fe"/></dir><file name="IndexController.php" hash="5d4a841c4f1bb1d3de2dfe1a325abe0f"/></dir><dir name="etc"><file name="adminhtml.xml" hash="0f44123ff295e29dc1f53967a1e5eff4"/><file name="config.xml" hash="7cca137d8acbc54de7ae46e86922aee1"/><file name="system.xml" hash="2a732cb77e3bba5d8d1d1caf8a146faf"/></dir><dir name="lib"><file name="Rollbar.php" hash="b93689fd5505f34a686cb5b979d0fdca"/></dir><dir name="sql"><dir name="koan_seg_setup"><file name="install-1.0.0.0.php" hash="983531e5fb85bdff121a5d0d74b34025"/><file name="upgrade-1.0.0.0-1.0.0.1.php" hash="9c91352527e09881251fd92766ac7a6f"/><file name="upgrade-1.0.0.1-1.0.0.2.php" hash="3a664531053ec11f56688527105cf8cd"/></dir></dir></dir><file name=".DS_Store" hash="194577a7e20bdcc7afbb718f502c134c"/></dir></target><target name="magedesign"><dir name="adminhtml"><dir name="default"><dir name="default"><dir name="layout"><file name="seg.xml" hash="4980a411970cde4aacae7d2a3c1815bb"/></dir></dir></dir></dir><dir name="frontend"><dir name="base"><dir name="default"><dir name="layout"><file name="seg.xml" hash="017d053269b5e2741eb58370696b1669"/></dir><dir name="template"><dir name="seg"><file name="config.phtml" hash="079d1614bcc44acc0766d9f43f5131a3"/><file name="tracking.phtml" hash="8085abd78c95b8eace352f64a07738ab"/></dir></dir></dir></dir></dir></target><target name="mageetc"><dir name="modules"><file name="Koan_Seg.xml" hash="7bea24d633fd1e53870ecc7fe19b4e41"/></dir></target></contents>
+---------------------------------------&#xD;
+&#xD;
+*** Features &#xD;
+&#xD;
+***** Email marketing segmentation &#xD;
+Seg's rich user profiling will amaze your team and give unbelievable customer insight.&#xD;
+- Seg *collects all your user* data in realtime, as they are browsing your store&#xD;
+- Use *purchase and browsing behavior to build customer profiles* as well as email interaction&#xD;
+- *Email your customer segments* by sending them to MailChimp with 1-click.&#xD;
+- You can *import all your historical customer data* so you can start automating based on previous shopping preferences straight away.&#xD;
+&#xD;
+***** Automated workflows &#xD;
+Say goodbye to scheduling &#x2013; by automating most of your email marketing, you can save your team valuable time and resource, while maximising your return from email. &#xD;
+- Create *custom workflows based on customer profiles* and never send an irrelevant email again&#xD;
+- *Connect with over 500+ apps* you already know how to use&#xD;
+- *Take any marketing action you can imagine.* Trigger emails, send SMS or even send a list of your old best customers to a google sheet so you can give them a call!&#xD;
+- *Easily turn on our pre-built workflows* to start automating straight away&#xD;
+- *Automate based on browsing behaviour and customer life cycles*, not just email interaction&#xD;
+&#xD;
+***** Report &#xD;
+Attribute individual orders to emails (or any other customer communication) easily by integrating your eCommerce and CRM systems in Seg.&#xD;
+- Flexible attribution for reporting that matches with your other systems and works for your business&#xD;
+- Find out which products you sold against campaigns and customers&#xD;
+- Measure the metrics that matter to you. Whether it&#x2019;s engagement rates or revenue and profit generated, easily generate reports that get to the heart of your business&#x2019; goals.&#xD;
+&#xD;
+---------------------------------------&#xD;
+&#xD;
+*** It's good to talk &#xD;
+If you have any questions about the app, we&#x2019;re here to help. Just pop us an email at [hello@getseg.com](hello@getseg.com)&#xD;
+&#xD;
+*** Pricing &#xD;
+We offer transparent pricing for our plans and no expensive onboarding. There are two plans,: Segment and Automate. [Find out more here](https://getseg.com/pricing).</description>
+    <notes>Updates to AddedToBasket event capture, tag management, order status management, multiple store-front capability and improved historical data export to Seg.</notes>
+    <authors><author><name>Seg</name><user>KoanLeeroy</user><email>lee@koan.is</email></author></authors>
+    <date>2016-08-15</date>
+    <time>09:25:10</time>
+    <contents><target name="magecommunity"><dir name="Koan"><dir name="Seg"><dir name="Block"><dir name="Adminhtml"><dir name="Exporter"><dir name="Grid"><dir name="Renderer"><file name="Log.php" hash="4d7cd9a075b1f51e82240a30c425d56a"/><file name="Status.php" hash="662e8eb5ccf2e024fe8701bd10b3a753"/></dir></dir><file name="Grid.php" hash="2035116d9a36d6e93968c89a7ded5b32"/></dir><file name="Exporter.php" hash="af0a72525d29259cd8515a7e8a8c191a"/></dir><file name="Header.php" hash="c357a4ece83409cf9580518bc575370d"/><file name="Track.php" hash="69de03202dfbbec695fc8165472c75ba"/></dir><dir name="Helper"><file name="Data.php" hash="0518977464c828685727e69e1301e863"/></dir><dir name="Model"><dir name="Batch"><file name="Log.php" hash="8596e366b2a11a8f4b3ed378c9ab767b"/><file name="Status.php" hash="259dbf63858d9586ec2db8d4bcc18b9b"/></dir><dir name="Config"><dir name="Source"><file name="Websites.php" hash="dfcf07b5a2138d3450e529c978f081bf"/></dir></dir><dir name="Exception"><file name="Handler.php" hash="60cef7aef2b276fbd42d17f5406a4d64"/></dir><dir name="Guid"><file name="Validator.php" hash="34a60bcd3613c3e395eff37b324965f8"/></dir><file name="Logger.php" hash="d2f267ea04603190d30dbcf185b6651f"/><file name="Observer.php" hash="10c3893b5b89ff6be324c2224db12ee4"/><dir name="Resource"><dir name="Batch"><dir name="Log"><file name="Collection.php" hash="bfe3d12a5374e97bc2e7afdb80634733"/></dir><file name="Log.php" hash="4e981896908e00032dab327a4e876610"/><dir name="Status"><file name="Collection.php" hash="814df925981a77007df1d7710d407ec5"/></dir><file name="Status.php" hash="f96826a954f09bc9fc67e97f14dec207"/></dir><dir name="Log"><dir name="Status"><file name="Collection.php" hash="814df925981a77007df1d7710d407ec5"/></dir><file name="Status.php" hash="f96826a954f09bc9fc67e97f14dec207"/></dir></dir><dir name="Seg"><file name="Basket.php" hash="2685a1fc7ea6dce89ec37800db177f42"/><file name="Client.php" hash="c686f1140b258bd83a3ec49ee61a4262"/><file name="Customer.php" hash="fc8c59e8cd5daaa7fd6a839c3be8ab11"/><file name="Exporter.php" hash="a6ef31b18ffeff8450edad41d005b39f"/><dir name="Order"><file name="Line.php" hash="e7f913457abda73772f0b5189a09265b"/></dir><file name="Order.php" hash="d3af49ea2c8a5c09829ff3f712c0058d"/><file name="Product.php" hash="2747dc540876074d9cd0069709bd436c"/><dir name="Quote"><file name="Line.php" hash="64acdef420ae4a94f154c3cfc2c03f3a"/></dir><file name="Range.php" hash="fa3ac1a7c62887c2ad196bb1579235c5"/></dir><dir name="Singlepayload"><file name="Exception.php" hash="4fb177b69115d9407dc3d28888c0881e"/></dir><dir name="System"><dir name="Config"><dir name="Source"><file name="Attributes.php" hash="57c2420a0f221f8265adc9203529d0c0"/></dir></dir></dir></dir><dir name="controllers"><dir name="Adminhtml"><file name="SegController.php" hash="93bfb99dbac7fae552c3469b01ed8748"/></dir><file name="IndexController.php" hash="5d4a841c4f1bb1d3de2dfe1a325abe0f"/></dir><dir name="etc"><file name="adminhtml.xml" hash="e3f0a996769ab63bedad8294b252dda4"/><file name="config.xml" hash="2f881bb8b983440c803d71ba32033fe6"/><file name="system.xml" hash="b47c423548f3c9b18962d97598087d35"/></dir><dir name="lib"><file name="Rollbar.php" hash="b93689fd5505f34a686cb5b979d0fdca"/></dir><dir name="sql"><dir name="koan_seg_setup"><file name="install-1.0.0.0.php" hash="983531e5fb85bdff121a5d0d74b34025"/><file name="upgrade-1.0.0.0-1.0.0.1.php" hash="7319d9d9ef61e5705d04dc3bf8eea136"/><file name="upgrade-1.0.0.1-1.0.0.2.php" hash="a4cb573c73b2ed36f41eded6f1398b69"/><file name="upgrade-1.0.0.2-1.0.0.3.php" hash="42b2e8713d49320b68d83411a9263e6c"/><file name="upgrade-1.0.0.3-1.0.0.4.php" hash="1ed6cb246727e5b9eae326a9d0082e93"/><file name="upgrade-1.0.0.4-1.0.0.5.php" hash="025839fb7bf0c093149fab18c56211a3"/></dir></dir></dir></dir></target><target name="magedesign"><dir name="adminhtml"><dir name="default"><dir name="default"><dir name="layout"><file name="seg.xml" hash="27fe042622d312082f8af11ddcf0d35b"/></dir><dir name="template"><dir name="seg"><dir name="grid"><file name="container.phtml" hash="2affea3e09428df09dcbea665119df3d"/></dir><file name="log.phtml" hash="9b75727cebdd07c49807b2ade89ef5c5"/></dir></dir></dir></dir></dir><dir name="frontend"><dir name="base"><dir name="default"><dir name="layout"><file name="seg.xml" hash="017d053269b5e2741eb58370696b1669"/></dir><dir name="template"><dir name="seg"><file name="config.phtml" hash="079d1614bcc44acc0766d9f43f5131a3"/><file name="tracking.phtml" hash="8085abd78c95b8eace352f64a07738ab"/></dir></dir></dir></dir></dir></target><target name="mageetc"><dir name="modules"><file name="Koan_Seg.xml" hash="7bea24d633fd1e53870ecc7fe19b4e41"/></dir></target></contents>
     <compatible/>
     <dependencies><required><php><min>5.1.0</min><max>6.0.0</max></php></required></dependencies>
 </package>

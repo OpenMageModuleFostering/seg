@@ -2,7 +2,7 @@
 <layout>
     <adminhtml_seg_exporter>
         <reference name="content">
-            <block type="koan_seg/adminhtml_exporter" name="exporter"/>
+            <block type="koan_seg/adminhtml_exporter" name="exporter" />
         </reference>
     </adminhtml_seg_exporter>
 </layout>

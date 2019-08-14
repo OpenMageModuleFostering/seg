@@ -8,7 +8,7 @@ class Koan_Seg_Model_Batch_Status extends Mage_Core_Model_Abstract
         $this->_init('koan_seg/batch_status');
     }
 
-    public function createNew($entityType = null, $filter = null)
+    public function createNew($websiteId, $entityType = null, $filter = null)
     {
         $data = array(
             'entity_type' => $entityType,
@@ -18,7 +18,8 @@ class Koan_Seg_Model_Batch_Status extends Mage_Core_Model_Abstract
             'num_rows_processed' => 0,
             'current_status' => 0,
             'comment' => 'Waiting for start ...',
-            'num_retried' => 0
+            'num_retried' => 0,
+            'website_id' => $websiteId
         );
 
         if ($filter) {
@@ -85,11 +86,30 @@ class Koan_Seg_Model_Batch_Status extends Mage_Core_Model_Abstract
         $data = array(
             'num_retried' => $numRetried,
             'comment' => $message,
+            'current_status' => Koan_Seg_Model_Seg_Exporter::BATCH_STATUS_ERROR,
         );
 
-        if ($numRetried >= 3) {
-            $data['current_status'] = Koan_Seg_Model_Seg_Exporter::BATCH_STATUS_ERROR;
+        $this->addData(
+            $data
+        );
+
+        try {
+            $this->save();
+        } Catch (Exception $e) {
+            throw $e;
         }
+    }
+
+    public function setBatchRetryError($message)
+    {
+        $numRetried = is_null($this->getNumRetried()) ? 0 : $this->getNumRetried();
+        $numRetried++;
+
+        $data = array(
+            'num_retried' => $numRetried,
+            'comment' => $message,
+            'current_status' => Koan_Seg_Model_Seg_Exporter::BATCH_STATUS_NEED_RETRY,
+        );
 
         $this->addData(
             $data

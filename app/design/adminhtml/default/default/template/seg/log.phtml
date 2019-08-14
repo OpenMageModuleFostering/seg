@@ -1,0 +1,52 @@
+<?php $collection = $this->getLogCollection(); ?>
+<?php if (!count($collection)): ?>
+    <?php $this->__('Nothing to show here.') ?>
+<?php endif; ?>
+
+<table class="zui-table">
+    <thead>
+    <tr>
+        <th><?php echo $this->__('Id') ?></th>
+        <th><?php echo $this->__('Payload Start Row') ?></th>
+        <th><?php echo $this->__('Payload End Row') ?></th>
+        <th><?php echo $this->__('Comment') ?></th>
+        <th><?php echo $this->__('Num. Retries') ?></th>
+    </tr>
+    </thead>
+    <tbody>
+    <?php foreach ($collection as $row): ?>
+        <tr>
+            <td><?php echo $row->getId() ?></td>
+            <td><?php echo $row->getStart() ?></td>
+            <td><?php echo intval($row->getStart()) + intval($row->getLimit()) ?></td>
+            <td><?php echo $row->getComment() ?></td>
+            <td><?php echo $row->getNumRetried() ?></td>
+        </tr>
+    <?php endforeach; ?>
+    </tbody>
+</table>
+
+<style type="text/css">
+    .zui-table {
+        border: solid 1px #DDEEEE;
+        border-collapse: collapse;
+        border-spacing: 0;
+        font: normal 13px Arial, sans-serif;
+    }
+
+    .zui-table thead th {
+        background-color: #DDEFEF;
+        border: solid 1px #DDEEEE;
+        color: #336B6B;
+        padding: 10px;
+        text-align: left;
+        text-shadow: 1px 1px 1px #fff;
+    }
+
+    .zui-table tbody td {
+        border: solid 1px #DDEEEE;
+        color: #333;
+        padding: 10px;
+        text-shadow: 1px 1px 1px #fff;
+    }
+</style>

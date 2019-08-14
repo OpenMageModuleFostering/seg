@@ -35,28 +35,30 @@ class Koan_Seg_Model_Seg_Product extends Varien_Object
 
         $this->setData($productData);
 
-        $catIds = $product->getCategoryIds();
-        $categoriesResult = array();
-        if ($catIds AND is_array($catIds) AND count($catIds)) {
-            foreach ($catIds as $catId) {
-                $category = Mage::getModel('catalog/category')
-                    ->setStoreId($storeId)
-                    ->load($catId);
+        $tags = $this->_getHelper()->getProductTags($product, $storeId);
 
-                if ($category AND $category->getId()) {
-                    $categoriesResult[] = $category->getName();
-                }
+//        $catIds = $product->getCategoryIds();
+//        if ($catIds AND is_array($catIds) AND count($catIds)) {
+//            foreach ($catIds as $catId) {
+//                $category = Mage::getModel('catalog/category')
+//                    ->setStoreId($storeId)
+//                    ->load($catId);
+//
+//                if ($category AND $category->getId()) {
+//                    $tags[] = $category->getName();
+//                }
+//            }
+//        }
+        $categories = Mage::helper('koan_seg')->getAllProductCategories($product);
+        if ($categories AND is_array($categories) AND count($categories)) {
+            foreach ($categories as $catName) {
+                $tags[] = $catName;
             }
         }
-        if (count($categoriesResult)) {
-            $this->setData('Categories', $categoriesResult);
-            $outputAttributes[] = 'Categories';
-        }
 
-        $brands = $this->_getHelper()->getProductBrands($product, $storeId);
-        if (!empty($brands)) {
-            $this->setData('Brands', $brands);
-            $outputAttributes[] = 'Brands';
+        if (!empty($tags)) {
+            $this->setData('Tags', @array_values($tags));
+            $outputAttributes[] = 'Tags';
         }
 
         return $this->toArray($outputAttributes);

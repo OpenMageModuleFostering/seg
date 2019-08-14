@@ -5,13 +5,12 @@ $installer->startSetup();
 
 $installer->getConnection()->addColumn(
     $installer->getTable('koan_seg/batch_status'),
-    'filter',
+    'website_id',
     array(
-        'type' => Varien_Db_Ddl_Table::TYPE_TEXT,
-        'length' => 255,
+        'type' => Varien_Db_Ddl_Table::TYPE_INTEGER,
         'nullable' => true,
         'default' => null,
-        'comment' => 'Date filter for orders'
+        'comment' => 'Website Id'
     )
 );
 $installer->endSetup();

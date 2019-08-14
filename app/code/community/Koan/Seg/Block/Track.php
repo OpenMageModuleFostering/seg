@@ -13,6 +13,7 @@ class Koan_Seg_Block_Track extends Mage_Core_Block_Template
     const PAGE_TYPE_CATEGORY = 2;
     const PAGE_TYPE_DEFAULT = 3;
     const PAGE_TYPE_CHECKOUT_SUCCESS = 4;
+    const PAGE_TYPE_CART = 5;
 
     public function getCustomerData()
     {
@@ -26,11 +27,12 @@ class Koan_Seg_Block_Track extends Mage_Core_Block_Template
 
         $result = array('Email' => $email);
 
+        /*
         $id = $customer->getId();
         if (!empty($id)) {
             $result['Id'] = $id;
         }
-
+*/
         $title = $customer->getPrefix();
         if (!empty($title)) {
             $result['Title'] = $title;
@@ -60,9 +62,12 @@ class Koan_Seg_Block_Track extends Mage_Core_Block_Template
             $result['CountryCode'] = $country;
         }
 
-        $gender = $this->_getAttributeText($customer, 'gender');
-        if (!empty($gender)) {
-            $result['Gender'] = $gender;
+        $gender = $customer->getGender();
+        if($gender){
+            $genderTxt = $this->_getAttributeText($customer, 'gender');
+            if (!empty($genderTxt)) {
+                $result['Gender'] = $genderTxt;
+            }
         }
 
         if ($result AND is_array($result) and count($result)) {
@@ -117,6 +122,11 @@ class Koan_Seg_Block_Track extends Mage_Core_Block_Template
 
         if ($moduleName == 'checkout' AND $controllerName == 'onepage' AND $actionName == 'success') {
             $result['type'] = self::PAGE_TYPE_CHECKOUT_SUCCESS;
+            return $result;
+        }
+
+        if ($moduleName == 'checkout' AND $controllerName == 'cart' AND $actionName == 'index') {
+            $result['type'] = self::PAGE_TYPE_CART;
             return $result;
         }
 
@@ -203,6 +213,10 @@ class Koan_Seg_Block_Track extends Mage_Core_Block_Template
                     return $this->_getOrderSuccessEventCode($order);
                     break;
 
+                case self::PAGE_TYPE_CART:
+                    return $this->_getCartViewEventCode();
+                    break;
+
                 default:
                     return array('event' => 'PageView', 'data' => null);
                     break;
@@ -213,6 +227,24 @@ class Koan_Seg_Block_Track extends Mage_Core_Block_Template
         }
 
         return null;
+    }
+
+    private function _getCartViewEventCode()
+    {
+        $cart = $this->_getCart();
+        $quote = $cart->getQuote();
+
+        if (!$quote) {
+            return false;
+        }
+
+        $cartData = Mage::getModel('koan_seg/seg_basket')->prepareBasketView($quote);
+        $result = array(
+            'event' => 'AddedToBasket',
+            'data' => json_encode($cartData)
+        );
+
+        return $result;
     }
 
     private function _getAddToCartEventCode($itemId)
@@ -252,7 +284,7 @@ class Koan_Seg_Block_Track extends Mage_Core_Block_Template
 
     private function _getOrderSuccessEventCode($order)
     {
-        $orderData = Mage::getModel('koan_seg/seg_order')->prepare($order);
+        $orderData = Mage::getModel('koan_seg/seg_order')->prepare($order, false);
 
         $result = array(
             'event' => 'OrderPlaced',
@@ -279,6 +311,11 @@ class Koan_Seg_Block_Track extends Mage_Core_Block_Template
     private function _getHelper()
     {
         return Mage::helper('koan_seg');
+    }
+
+    protected function _getCart()
+    {
+        return Mage::getSingleton('checkout/cart');
     }
 
 }

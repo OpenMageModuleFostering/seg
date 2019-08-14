@@ -1,0 +1,14 @@
+<p class="switcher"><label for="store_switcher">Choose Website To Export data from:</label>
+    <?php echo $this->getWebsiteSelectorHtml() ?>
+</p>
+<div class="content-header">
+    <table cellspacing="0">
+        <tr>
+            <td style="width:200px;"><?php echo $this->getHeaderHtml() ?></td>
+            <td class="form-buttons"><?php echo $this->getButtonsHtml() ?></td>
+        </tr>
+    </table>
+</div>
+<div>
+    <?php echo $this->getGridHtml() ?>
+</div>

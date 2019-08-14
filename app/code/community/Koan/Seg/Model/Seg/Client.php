@@ -4,8 +4,6 @@ Mage::helper('koan_seg')->includeRollBar();
 
 class Koan_Seg_Model_Seg_Client extends Varien_Http_Client
 {
-    const REQUEST_TIMEOUT = 30;
-
     public function __construct()
     {
         //$this->_getHelper()->initRollbar();
@@ -14,7 +12,7 @@ class Koan_Seg_Model_Seg_Client extends Varien_Http_Client
         parent::__construct();
     }
 
-    public function exportCustomers($customers)
+    public function exportCustomers($customers, $storeId = null)
     {
         if (!$customers) {
             Mage::throwException($this->__('Customers data does not exists!'));
@@ -26,7 +24,7 @@ class Koan_Seg_Model_Seg_Client extends Varien_Http_Client
 
         $params = json_encode($customers);
 
-        $url = $this->_getExportCustomerUrl();
+        $url = $this->_getExportCustomerUrl($storeId);
 
         $this->_init();
         $this->setUri($url);
@@ -52,7 +50,7 @@ class Koan_Seg_Model_Seg_Client extends Varien_Http_Client
         return $this;
     }
 
-    public function exportHistoryOrders($orders)
+    public function exportHistoryOrders($orders, $storeId = null)
     {
         if (!$orders) {
             Mage::throwException($this->__('Order data does not exists!'));
@@ -64,7 +62,7 @@ class Koan_Seg_Model_Seg_Client extends Varien_Http_Client
 
         $params = json_encode($orders);
 
-        $url = $this->_getExportOrderHistoryUrl();
+        $url = $this->_getExportOrderHistoryUrl($storeId);
 
         $this->_init();
         $this->setUri($url);
@@ -76,7 +74,7 @@ class Koan_Seg_Model_Seg_Client extends Varien_Http_Client
             $batchSize = 20;
             $total = count($orders);
 
-            $numBatches = floor(floatval($total) / floatval($batchSize)) + (floatval($total) % floatval($batchSize));
+            $numBatches = ceil(floatval($total) / floatval($batchSize));
             $batchCounter = 0;
 
             $batch = array();
@@ -85,24 +83,12 @@ class Koan_Seg_Model_Seg_Client extends Varien_Http_Client
             foreach ($orders as $order) {
                 $counter++;
 
-                if ($counter >= $total) {
+                $batch[] = $order;
+                if ((count($batch) >= $batchSize) OR ($counter == $total)) {
                     $batchCounter++;
                     $logData = json_encode($batch);
                     Mage::getSingleton('koan_seg/logger')->log(
                         'Magento: posting history orders to Seg', 'info', array('orders' => $logData, 'endpoint' => $url, 'batch' => $batchCounter, 'batches' => $numBatches));
-
-                    break;
-                }
-
-                if (count($batch) < $batchSize) {
-                    $batch[] = $order;
-                } else {
-                    $batchCounter++;
-                    $logData = json_encode($batch);
-
-                    Mage::getSingleton('koan_seg/logger')->log(
-                        'Magento: posting history orders to Seg', 'info', array('orders' => $logData, 'endpoint' => $url, 'batch' => $batchCounter, 'batches' => $numBatches));
-
                     $batch = array();
                 }
 
@@ -117,15 +103,16 @@ class Koan_Seg_Model_Seg_Client extends Varien_Http_Client
         }
 
         try {
-            $this->__handleResponse($response, 'posting history orders to Seg');
+           $result =  $this->__handleResponse($response, 'posting history orders to Seg');
         } Catch (Exception $e) {
             Mage::throwException('[exportHistoryOrders]::__handleResponse: ' . $e->getMessage());
+
         }
 
         return $this;
     }
 
-    public function exportNewOrder($orderData)
+    public function exportNewOrder($orderData, $storeId = null)
     {
         if (!$orderData) {
             Mage::throwException($this->__('Order data does not exists!'));
@@ -137,7 +124,7 @@ class Koan_Seg_Model_Seg_Client extends Varien_Http_Client
 
         $params = json_encode($orderData);
 
-        $url = $this->_getOrderPlacedUrl();
+        $url = $this->_getOrderPlacedUrl($storeId);
 
         $this->_init();
         $this->setUri($url);
@@ -178,6 +165,7 @@ class Koan_Seg_Model_Seg_Client extends Varien_Http_Client
             $code = $response->getStatus();
             $message = $response->getMessage();
             Mage::getSingleton('koan_seg/exception_handler')->handleHttpResponseError(sprintf('Magento: error in \'%s\' HTTP request: %s', $msg, $message), $code, $message);
+            Mage::throwException($response->getStatus() . ' - ' . $response->getMessage());
         }
 
         return false;
@@ -194,19 +182,19 @@ class Koan_Seg_Model_Seg_Client extends Varien_Http_Client
         return $this;
     }
 
-    private function _getExportCustomerUrl()
+    private function _getExportCustomerUrl($storeId)
     {
-        return sprintf($this->_getHelper()->getUpdateCustomersUrl(), $this->_getHelper()->getWebsiteId());
+        return sprintf($this->_getHelper()->getUpdateCustomersUrl(), $this->_getHelper()->getWebsiteId($storeId));
     }
 
-    private function _getExportOrderHistoryUrl()
+    private function _getExportOrderHistoryUrl($storeId)
     {
-        return sprintf($this->_getHelper()->getOrderHistoryUrl(), $this->_getHelper()->getWebsiteId());
+        return sprintf($this->_getHelper()->getOrderHistoryUrl(), $this->_getHelper()->getWebsiteId($storeId));
     }
 
     private function _getOrderPlacedUrl()
     {
-        return sprintf($this->_getHelper()->getOrderPlacedUrl(), $this->_getHelper()->getWebsiteId());
+        return sprintf($this->_getHelper()->getOrderPlacedUrl(), $this->_getHelper()->getWebsiteId($storeId));
     }
 
     private function _getHttpHeaders()
@@ -224,7 +212,7 @@ class Koan_Seg_Model_Seg_Client extends Varien_Http_Client
 
     private function _getTimeout()
     {
-        return self::REQUEST_TIMEOUT;
+        return $this->_getHelper()->getRequestTimeout();
     }
 
     private function _getHelper()

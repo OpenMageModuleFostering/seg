@@ -19,7 +19,7 @@ class Koan_Seg_Model_Seg_Range extends Varien_Object
             Mage::throwException('Missing Category Id');
         }
 
-        $categoryData = array('Categories');
+        $tagData = array('Tags');
 
         $lastCatName = $category->getName();
         $lastCategoryAdjust = 1;
@@ -32,14 +32,34 @@ class Koan_Seg_Model_Seg_Range extends Varien_Object
                 $cat = Mage::getModel('catalog/category')->load($path[$i]);
                 if ($cat && $cat->getIsActive()) {
 
-                    $categoryData['Categories'][] = $cat->getName();
+                    $tagData['Tags'][] = $cat->getName();
                 }
             }
 
-            $categoryData['Categories'][] = $lastCatName;
+            $tagData['Tags'][] = $lastCatName;
         }
 
-        $this->setData($categoryData);
-        return $this->toArray(array('Categories'));
+
+        $appliedFilters = Mage::getSingleton('catalog/layer')->getState()->getFilters();
+
+        $tagAttributeCodes = Mage::helper('koan_seg')->getTagAttributeCodes(Mage::app()->getStore()->getId());
+        if ($tagAttributeCodes) {
+            $tagAttributeCodes = array_map('trim', explode(',', $tagAttributeCodes));
+        }
+
+        if ($appliedFilters AND is_array($appliedFilters) AND count($appliedFilters)) {
+            foreach ($appliedFilters as $item) {
+                $requestVar = $item->getFilter()->getRequestVar();
+                if (!in_array($requestVar, $tagAttributeCodes)) {
+                    continue;
+                }
+                $filterValue = $item->getLabel(); // Currently selected value
+                $tagData['Tags'][] = $filterValue;
+            }
+
+        }
+
+        $this->setData($tagData);
+        return $this->toArray(array('Tags'));
     }
 }

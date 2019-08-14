@@ -9,6 +9,8 @@ class Koan_Seg_Model_Seg_Exporter
     const BATCH_STATUS_COMPLETE = 5;
     const BATCH_STATUS_ERROR = 6;
 
+    const BATCH_STATUS_NEED_RETRY = 7;
+
     const BATCH_ENTITY_TYPE_HISTORY_ORDERS = 'history_orders';
     const BATCH_ENTITY_TYPE_CUSTOMERS = 'customers';
 
@@ -25,7 +27,7 @@ class Koan_Seg_Model_Seg_Exporter
     /**************************************** CUSTOMERS ******************************************/
 
     //Prepare new customers batch to export
-    public function generateCustomersExportBatch()
+    public function generateCustomersExportBatch($websiteId)
     {
         if (self::$_exportCustomersGenerateCron == true) {
             return $this;
@@ -34,7 +36,7 @@ class Koan_Seg_Model_Seg_Exporter
         $this->_getHelper()->initRollbar();
 
         try {
-            $this->_exportCustomers(true);
+            $this->_exportCustomers(true, $websiteId);
         } Catch (Exception $e) {
             Mage::getSingleton('koan_seg/exception_handler')->handle('Magento: error in generateCustomersExportBatch', $e);
         }
@@ -69,10 +71,10 @@ class Koan_Seg_Model_Seg_Exporter
         return $this;
     }
 
-    private function _exportCustomers($createNew = false)
+    private function _exportCustomers($createNew = false, $websiteId = null)
     {
         if ($createNew == true) {
-            Mage::getModel('koan_seg/batch_status')->createNew(self::BATCH_ENTITY_TYPE_CUSTOMERS);
+            Mage::getModel('koan_seg/batch_status')->createNew($websiteId, self::BATCH_ENTITY_TYPE_CUSTOMERS);
             return $this;
         }
 
@@ -85,21 +87,37 @@ class Koan_Seg_Model_Seg_Exporter
         foreach ($batchRows as $batch) {
 
             try {
+
+                //Reset collection:
+                $this->_customersCollection = null;
+
                 $currentStatus = $batch->getCurrentStatus();
+                $websiteId = $batch->getWebsiteId();
 
                 switch ($currentStatus) {
                     case self::BATCH_STATUS_NOT_STARTED:
-                        $totalItemsCount = $this->_getCustomersCollectionSize();
+                        $totalItemsCount = $this->_getCustomersCollectionSize($websiteId);
                         $batch->setStartingStatus($totalItemsCount, self::BATCH_STATUS_STARTING);
                     case self::BATCH_STATUS_STARTING:
                         $batch->setProcessingStatus(self::BATCH_STATUS_PROCESSING_ROWS);
                     case self::BATCH_STATUS_PROCESSING_ROWS:
-                        $this->_processExportCustomers($batch);
-                        $batch->setCompleteStatus(self::BATCH_STATUS_COMPLETE);
+                        $errors = $this->_processExportCustomers($batch);
+                        if (count($errors)) {
+                            $batch->setBatchRetryError('Some errors occured during the batch export. Pending retry.');
+                        } else {
+                            $batch->setCompleteStatus(self::BATCH_STATUS_COMPLETE);
+                        }
+                        break;
+                    case self::BATCH_STATUS_NEED_RETRY:
+                        $this->_retryExportCustomers($batch);
+                        break;
                 }
 
             } Catch (Exception $e) {
-                $batch->setBatchError($e->getMessage());
+                $msg = $batch->setBatchError($e->getMessage());
+                if ($msg) {
+                    $e->setMessage($msg);
+                }
                 throw $e;
             }
 
@@ -108,20 +126,23 @@ class Koan_Seg_Model_Seg_Exporter
         return $this;
     }
 
-    public function _getCustomersCollectionSize()
+    public function _getCustomersCollectionSize($websiteId)
     {
-        $collection = $this->_getCustomersCollection();
+        $collection = $this->_getCustomersCollection($websiteId);
         return $collection->getSize();
     }
 
-    public function _getCustomersCollection()
+    public function _getCustomersCollection($websiteId)
     {
         if (!$this->_customersCollection) {
             $collection = Mage::getResourceModel('customer/customer_collection')
                 ->addAttributeToSelect('*')
                 ->joinAttribute('billing_country_id', 'customer_address/country_id', 'default_billing', null, 'left')
                 ->joinAttribute('shipping_country_id', 'customer_address/country_id', 'default_shipping', null, 'left');
-            //->load();
+
+            if (Mage::getModel('customer/config_share')->isWebsiteScope()) {
+                $collection->addFieldToFilter('website_id', $websiteId);
+            }
 
             $this->_customersCollection = $collection;
         }
@@ -131,8 +152,12 @@ class Koan_Seg_Model_Seg_Exporter
 
     private function _processExportCustomers($batch)
     {
+        $errors = array();
+
         $numProcTotal = is_null($batch->getNumRowsProcessed()) ? 0 : intval($batch->getNumRowsProcessed());
         $totalRows = is_null($batch->getTotalRowCount()) ? 0 : intval($batch->getTotalRowCount());
+
+        $websiteId = $batch->getWebsiteId();
 
         if ($numProcTotal < $totalRows) {
 
@@ -140,24 +165,53 @@ class Koan_Seg_Model_Seg_Exporter
 
             do {
 
-                $collection = clone $this->_getCustomersCollection();
+                $collection = clone $this->_getCustomersCollection($websiteId);
                 $collection->setOrder('entity_id', 'ASC');
                 $collection->getSelect()->limit($this->_getExportCustomersPageSize(), $numProcTotal);
                 $collection->load();
 
                 $numProcessed = 0;
 
-                $customers = array();
-                foreach ($collection as $customer) {
+                try {
 
-                    $customers[] = Mage::getModel('koan_seg/seg_customer')->prepare($customer);
-                    $numProcessed++;
+                    $customers = array();
+                    foreach ($collection as $customer) {
+
+                        $customers[] = Mage::getModel('koan_seg/seg_customer')->prepare($customer);
+                        $numProcessed++;
+                    }
+
+                    $storeId = Mage::app()
+                        ->getWebsite($websiteId)
+                        ->getDefaultGroup()
+                        ->getDefaultStoreId();
+
+                    Mage::getModel('koan_seg/seg_client')->exportCustomers($customers, $storeId);
+
+                    unset($customers);
+                    $customers = array();
+
+
+                } Catch (Exception $e) {
+
+                    $msg = sprintf('exportCustomers - Payload %s, %s - %s', $numProcTotal, $this->_getExportCustomersPageSize(), $e->getMessage());
+                    $errors[] = $msg;
+
+                    $data = array(
+                        'batch_id' => $batch->getId(),
+                        'start' => $numProcTotal,
+                        'limit' => $this->_getExportCustomersPageSize(),
+                        'comment' => $e->getMessage(),
+                        'num_retried' => 0
+                    );
+
+                    $log = Mage::getModel('koan_seg/batch_log');
+                    $log->setData($data);
+                    $log->save();
+
+                    Mage::getSingleton('koan_seg/exception_handler')->handle(sprintf('Magento: error in batch exporter - exportCustomers - Payload %s, %s', $numProcTotal, $this->_getExportCustomersPageSize()), new Koan_Seg_Model_Singlepayload_Exception($e->getMessage()));
+
                 }
-
-                Mage::getModel('koan_seg/seg_client')->exportCustomers($customers);
-
-                unset($customers);
-                $customers = array();
 
                 $numProcTotal += $numProcessed;
                 $batch->updateNumRowsProcessed(null, $numProcessed);
@@ -172,6 +226,72 @@ class Koan_Seg_Model_Seg_Exporter
 
         }
 
+        return $errors;
+    }
+
+    private function _retryExportCustomers($batch)
+    {
+        $retryCollection = Mage::getModel('koan_seg/batch_log')->getCollection();
+        $retryCollection->addFieldToFilter('batch_id', $batch->getId());
+        $retryCollection->addFieldToFilter('num_retried', array('lt' => 3));
+
+        $cnt = $retryCollection->getSize();
+        if (!$cnt) {
+            return;
+        }
+
+        $websiteId = $batch->getWebsiteId();
+
+        foreach ($retryCollection as $retry) {
+
+            $collection = clone $this->_getCustomersCollection($batch);
+            $collection->setOrder('entity_id', 'ASC');
+            $collection->getSelect()->limit($retry->getLimit(), $retry->getStart());
+            $collection->load();
+
+            try {
+
+                $customers = array();
+                foreach ($collection as $customer) {
+                    $customers[] = Mage::getModel('koan_seg/seg_customer')->prepare($customer);
+                }
+
+                $storeId = Mage::app()
+                    ->getWebsite($websiteId)
+                    ->getDefaultGroup()
+                    ->getDefaultStoreId();
+
+                Mage::getModel('koan_seg/seg_client')->exportCustomers($customers, $storeId);
+
+                unset($customers);
+                $customers = array();
+
+            } Catch (Exception $e) {
+
+                $numRetried = $retry->getNumRetried();
+                $numRetried = empty($numRetried) ? 0 : $numRetried;
+
+                $retry->setNumRetried($numRetried + 1);
+                $retry->setComment($retry->getComment() . PHP_EOL . $e->getMessage());
+                $retry->save();
+
+                Mage::getSingleton('koan_seg/exception_handler')->handle(sprintf('Magento: error in batch exporter - exportCustomers - Payload %s, %s', $retry->getStart(), $retry->getLimit()), new Koan_Seg_Model_Singlepayload_Exception($e->getMessage()));
+
+            }
+
+        }
+
+        //Check if there are any retries???
+
+        $retryCollection = Mage::getModel('koan_seg/batch_log')->getCollection();
+        $retryCollection->addFieldToFilter('batch_id', $batch->getId());
+        $retryCollection->addFieldToFilter('num_retried', array('lt' => 3));
+
+        $cnt = $retryCollection->getSize();
+        if (!$cnt) {
+            Mage::throwException('ERROR: Exhausted num retries!');
+        }
+
     }
 
     private function _getExportCustomersPageSize()
@@ -184,7 +304,7 @@ class Koan_Seg_Model_Seg_Exporter
     /**************************************** ORDERS ******************************************/
 
     //Prepare new history orders batch to export
-    public function generateHistoryOrdersExportBatch($orderDateFilter = null)
+    public function generateHistoryOrdersExportBatch($websiteId, $orderDateFilter = null)
     {
         if (self::$_exportHistoryOrdersGenerateCron == true) {
             return $this;
@@ -193,7 +313,7 @@ class Koan_Seg_Model_Seg_Exporter
         $this->_getHelper()->initRollbar();
 
         try {
-            $this->_exportHistoryOrders(true, $orderDateFilter);
+            $this->_exportHistoryOrders(true, $orderDateFilter, $websiteId);
         } Catch (Exception $e) {
             Mage::getSingleton('koan_seg/exception_handler')->handle('Magento: error in generateHistoryOrdersExportBatch', $e);
         }
@@ -228,10 +348,10 @@ class Koan_Seg_Model_Seg_Exporter
         return $this;
     }
 
-    private function _exportHistoryOrders($createNew = false, $orderDateFilter = null)
+    private function _exportHistoryOrders($createNew = false, $orderDateFilter = null, $websiteId = null)
     {
         if ($createNew == true) {
-            Mage::getModel('koan_seg/batch_status')->createNew(self::BATCH_ENTITY_TYPE_HISTORY_ORDERS, $orderDateFilter);
+            Mage::getModel('koan_seg/batch_status')->createNew($websiteId, self::BATCH_ENTITY_TYPE_HISTORY_ORDERS, $orderDateFilter);
             return $this;
         }
 
@@ -242,6 +362,9 @@ class Koan_Seg_Model_Seg_Exporter
         }
 
         foreach ($batchRows as $batch) {
+
+            $this->_historyOrdersCollection = null;
+
             try {
                 $currentStatus = $batch->getCurrentStatus();
 
@@ -252,8 +375,16 @@ class Koan_Seg_Model_Seg_Exporter
                     case self::BATCH_STATUS_STARTING:
                         $batch->setProcessingStatus(self::BATCH_STATUS_PROCESSING_ROWS);
                     case self::BATCH_STATUS_PROCESSING_ROWS:
-                        $this->_processExportHistoryOrders($batch);
-                        $batch->setCompleteStatus(self::BATCH_STATUS_COMPLETE);
+                        $errors = $this->_processExportHistoryOrders($batch);
+                        if (count($errors)) {
+                            $batch->setBatchRetryError('Some errors occured during the batch export. Pending retry.');
+                        } else {
+                            $batch->setCompleteStatus(self::BATCH_STATUS_COMPLETE);
+                        }
+                        break;
+                    case self::BATCH_STATUS_NEED_RETRY:
+                        $this->_retryExportHistoryOrders($batch);
+                        break;
                 }
 
             } Catch (Exception $e) {
@@ -266,8 +397,74 @@ class Koan_Seg_Model_Seg_Exporter
         return $this;
     }
 
+    private function _retryExportHistoryOrders($batch)
+    {
+        $retryCollection = Mage::getModel('koan_seg/batch_log')->getCollection();
+        $retryCollection->addFieldToFilter('batch_id', $batch->getId());
+        $retryCollection->addFieldToFilter('num_retried', array('lt' => 3));
+
+        $cnt = $retryCollection->getSize();
+        if (!$cnt) {
+            return;
+        }
+
+        foreach ($retryCollection as $retry) {
+
+            $collection = clone $this->_getHistoryOrdersCollection($batch);
+            $collection->setOrder('entity_id', 'ASC');
+            $collection->getSelect()->limit($retry->getLimit(), $retry->getStart());
+            $collection->load();
+
+            try {
+
+                $orders = array();
+                foreach ($collection as $order) {
+                    $orders[] = Mage::getModel('koan_seg/seg_order')->prepare($order);
+                }
+
+                $websiteId = $batch->getWebsiteId();
+                $storeId = Mage::app()
+                    ->getWebsite($websiteId)
+                    ->getDefaultGroup()
+                    ->getDefaultStoreId();
+
+                Mage::getModel('koan_seg/seg_client')->exportHistoryOrders($orders, $storeId);
+
+                unset($orders);
+                $orders = array();
+
+            } Catch (Exception $e) {
+
+                $numRetried = $retry->getNumRetried();
+                $numRetried = empty($numRetried) ? 0 : $numRetried;
+
+                $retry->setNumRetried($numRetried + 1);
+                $retry->setComment($retry->getComment() . PHP_EOL . $e->getMessage());
+                $retry->save();
+
+                Mage::getSingleton('koan_seg/exception_handler')->handle(sprintf('Magento: error in batch exporter - exportHistoryOrders - Payload %s, %s', $retry->getStart(), $retry->getLimit()), new Koan_Seg_Model_Singlepayload_Exception($e->getMessage()));
+
+            }
+
+        }
+
+        //Check if there are any retries???
+
+        $retryCollection = Mage::getModel('koan_seg/batch_log')->getCollection();
+        $retryCollection->addFieldToFilter('batch_id', $batch->getId());
+        $retryCollection->addFieldToFilter('num_retried', array('lt' => 3));
+
+        $cnt = $retryCollection->getSize();
+        if (!$cnt) {
+            Mage::throwException('ERROR: Exhausted num retries!');
+        }
+
+    }
+
     private function _processExportHistoryOrders($batch)
     {
+        $errors = array();
+
         $numProcTotal = is_null($batch->getNumRowsProcessed()) ? 0 : intval($batch->getNumRowsProcessed());
         $totalRows = is_null($batch->getTotalRowCount()) ? 0 : intval($batch->getTotalRowCount());
 
@@ -284,18 +481,47 @@ class Koan_Seg_Model_Seg_Exporter
 
                 $numProcessed = 0;
 
-                $orders = array();
-                foreach ($collection as $order) {
+                try {
 
-                    //TODO: Handle collection export
-                    $orders[] = Mage::getModel('koan_seg/seg_order')->prepare($order);
-                    $numProcessed++;
+                    $orders = array();
+                    foreach ($collection as $order) {
+
+                        //TODO: Handle collection export
+                        $orders[] = Mage::getModel('koan_seg/seg_order')->prepare($order);
+                        $numProcessed++;
+                    }
+
+                    $websiteId = $batch->getWebsiteId();
+                    $storeId = Mage::app()
+                        ->getWebsite($websiteId)
+                        ->getDefaultGroup()
+                        ->getDefaultStoreId();
+
+                    Mage::getModel('koan_seg/seg_client')->exportHistoryOrders($orders, $storeId);
+
+                    unset($orders);
+                    $orders = array();
+
+                } Catch (Exception $e) {
+
+                    $msg = sprintf('exportHistoryOrders - Payload %s, %s - %s', $numProcTotal, $this->_getExportHistoryPageSize(), $e->getMessage());
+                    $errors[] = $msg;
+
+                    $data = array(
+                        'batch_id' => $batch->getId(),
+                        'start' => $numProcTotal,
+                        'limit' => $this->_getExportHistoryPageSize(),
+                        'comment' => $e->getMessage(),
+                        'num_retried' => 0
+                    );
+
+                    $log = Mage::getModel('koan_seg/batch_log');
+                    $log->setData($data);
+                    $log->save();
+
+                    Mage::getSingleton('koan_seg/exception_handler')->handle(sprintf('Magento: error in batch exporter - exportHistoryOrders - Payload %s, %s', $numProcTotal, $this->_getExportHistoryPageSize()), new Koan_Seg_Model_Singlepayload_Exception($e->getMessage()));
+
                 }
-
-                Mage::getModel('koan_seg/seg_client')->exportHistoryOrders($orders);
-
-                unset($orders);
-                $orders = array();
 
                 $numProcTotal += $numProcessed;
                 $batch->updateNumRowsProcessed(null, $numProcessed);
@@ -309,6 +535,7 @@ class Koan_Seg_Model_Seg_Exporter
 
         }
 
+        return $errors;
     }
 
     private function _getExportHistoryPageSize()
@@ -341,7 +568,8 @@ class Koan_Seg_Model_Seg_Exporter
         $allowedStages = array(
             self::BATCH_STATUS_NOT_STARTED,
             self::BATCH_STATUS_STARTING,
-            self::BATCH_STATUS_PROCESSING_ROWS
+            self::BATCH_STATUS_PROCESSING_ROWS,
+            self::BATCH_STATUS_NEED_RETRY,
         );
 
         $collection = Mage::getResourceModel('koan_seg/batch_status_collection');
@@ -359,9 +587,24 @@ class Koan_Seg_Model_Seg_Exporter
 
     public function _getHistoryOrdersCollection($batch = null)
     {
+        $websiteId = $batch->getWebsiteId();
+        $storeId = Mage::app()
+            ->getWebsite($websiteId)
+            ->getDefaultGroup()
+            ->getDefaultStoreId();
+
         if (!$this->_historyOrdersCollection) {
             $collection = Mage::getResourceModel('sales/order_collection');
-            $collection->addFieldToFilter('state', 'complete');
+
+            $allowedStatuses = $this->_getHelper()->getOrdersExportStatuses($storeId);
+            if ($allowedStatuses AND is_array($allowedStatuses) AND count($allowedStatuses)) {
+                $collection->addFieldToFilter('status', array('in' => $allowedStatuses));
+            } else {
+                $collection->addFieldToFilter('state', 'complete');
+            }
+
+            $storeIds = Mage::app()->getWebsite($websiteId)->getStoreIds();
+            $collection->addFieldToFilter('store_id', array('in' => $storeIds));
 
             if ($batch AND $filter = $batch->getFilter()) {
                 $collection->addFieldToFilter('created_at', array('from' => $filter));

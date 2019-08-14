@@ -11,7 +11,9 @@ class Koan_Seg_Block_Header extends Mage_Core_Block_Template
 {
     protected function _beforeToHtml()
     {
-        $websiteId = $this->helper('koan_seg')->getWebsiteId();
+        $currentStore = Mage::app()->getStore()->getId();
+
+        $websiteId = $this->helper('koan_seg')->getWebsiteId($currentStore);
         if (empty($websiteId)) {
             $this->_template = null;
         }

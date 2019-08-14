@@ -16,6 +16,11 @@ class Koan_Seg_Block_Adminhtml_Exporter_Grid extends Mage_Adminhtml_Block_Widget
     protected function _prepareCollection()
     {
         $collection = Mage::getResourceModel('koan_seg/batch_status_collection');
+        $collection->getSelect()->join(
+            'core_website', 'core_website.website_id = main_table.website_id',
+            array('website_name' => 'name')
+        );
+
         $this->setCollection($collection);
         return parent::_prepareCollection();
     }
@@ -27,6 +32,19 @@ class Koan_Seg_Block_Adminhtml_Exporter_Grid extends Mage_Adminhtml_Block_Widget
             'align' => 'right',
             'width' => '40px',
             'index' => 'id',
+        ));
+
+        $this->addColumn('website', array(
+            'header' => Mage::helper('koan_seg')->__('Website'),
+            'align' => 'left',
+            'index' => 'website_name',
+        ));
+
+        $this->addColumn('filter', array(
+            'header' => Mage::helper('sales')->__('Orders filtered from Date:'),
+            'index' => 'filter',
+            'type' => 'date',
+            'filter' => false
         ));
 
         $this->addColumn('entity_type', array(
@@ -67,6 +85,13 @@ class Koan_Seg_Block_Adminhtml_Exporter_Grid extends Mage_Adminhtml_Block_Widget
             'header' => Mage::helper('koan_seg')->__('Comment'),
             'align' => 'left',
             'index' => 'comment',
+        ));
+
+        $this->addColumn('edit', array(
+            'header' => Mage::helper('koan_seg')->__('View Log'),
+            'align' => 'right',
+            'width' => '200px',
+            'renderer' => 'koan_seg/adminhtml_exporter_grid_renderer_log',
         ));
 
         return parent::_prepareColumns();

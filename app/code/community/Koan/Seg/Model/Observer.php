@@ -48,7 +48,7 @@ class Koan_Seg_Model_Observer
             if ($quoteItem->getParentItemId()) {
                 Mage::getSingleton('customer/session')->setItemAddedToCart($quoteItem->getParentItemId());
                 $quoteItem->unsAddedToCartFlag();
-            } else if ($quoteItem->hasId()) {
+            } else if ($quoteItem->getId()) {
                 Mage::getSingleton('customer/session')->setItemAddedToCart($quoteItem->getId());
                 $quoteItem->unsAddedToCartFlag();
             }
@@ -70,9 +70,11 @@ class Koan_Seg_Model_Observer
             return $observer;
         }
 
+        $storeId = is_null($order->getStoreId()) ? 0 : $order->getStoreId();
+
         try {
             $orderData = Mage::getModel('koan_seg/seg_order')->prepare($order);
-            Mage::getModel('koan_seg/seg_client')->exportNewOrder($orderData);
+            Mage::getModel('koan_seg/seg_client')->exportNewOrder($orderData, $storeId);
         } Catch (Exception $e) {
             Mage::getSingleton('koan_seg/exception_handler')->handle('Magento: error in orderPlaceAfter observer - exportNewOrder', $e);
         }

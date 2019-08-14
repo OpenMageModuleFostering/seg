@@ -10,7 +10,9 @@ class Koan_Seg_Block_Adminhtml_Exporter_Grid_Renderer_Status extends Mage_Adminh
             Koan_Seg_Model_Seg_Exporter::BATCH_STATUS_STARTING => 'Export starting in progress',
             Koan_Seg_Model_Seg_Exporter::BATCH_STATUS_PROCESSING_ROWS => 'Processing rows',
             Koan_Seg_Model_Seg_Exporter::BATCH_STATUS_COMPLETE => 'Export completed',
-            Koan_Seg_Model_Seg_Exporter::BATCH_STATUS_ERROR => 'Error'
+            Koan_Seg_Model_Seg_Exporter::BATCH_STATUS_ERROR => 'Error',
+            Koan_Seg_Model_Seg_Exporter::BATCH_STATUS_NEED_RETRY => 'Pending Retry'
+
         );
 
         return isset($statuses[$status]) ? $statuses[$status] : $status;

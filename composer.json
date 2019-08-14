@@ -1,13 +1,13 @@
 {
-    "name": "OpenMageModuleFostering/seg",
+    "name": "OpenMageModuleFostering/Seg",
     "type": "magento-module",
     "license": "Open-Software-License-(OSL-3.0)",
     "homepage": "",
-    "description": "Easily and automatically make more revenue from MailChimp by understanding customer preferences and behaviour.",
+    "description": "Seg unlocks the potential of your Magento user data to supercharge your email marketing. Install free today.",
     "authors": [
     {
         "name": "Seg",
-        "email": "Lee@koan.is"
+        "email": "lee@koan.is"
     }
 ],
     "suggest": {

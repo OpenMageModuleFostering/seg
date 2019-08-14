@@ -20,6 +20,8 @@
                         </children>
                     </system>
                     <seg translate="title" module="koan_seg">
+                        <title>Seg</title>
+                        <sort_order>120</sort_order>
                         <children>
                             <exporter>
                                 <title>Exporter</title>

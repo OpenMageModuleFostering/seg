@@ -62,6 +62,54 @@ class Koan_Seg_Model_Seg_Basket extends Varien_Object
         return $this->toArray($resultAttributes);
     }
 
+    public function prepareBasketView($quote)
+    {
+        if (!$quote) {
+            Mage::throwException('Quote is not valid!');
+        }
+
+        if (!$quoteId = $quote->getId()) {
+            Mage::throwException('Missing Quote Id');
+        }
+
+        $revenue = is_null($quote->getBaseGrandTotal()) ? 0 : $quote->getBaseGrandTotal();
+
+        $resultAttributes = array(
+            'Discount',
+            'Id',
+            'OrderLines',
+            //'_p',
+            'Revenue'
+        );
+
+        $shippingAddress = $quote->getShippingAddress();
+
+        $shippingMethod = $shippingAddress->getShippingDescription();
+        if (!empty($shippingMethod)) {
+            $this->setData('DeliveryMethod', $shippingMethod);
+            $resultAttributes[] = 'DeliveryMethod';
+        }
+
+        $deliveryRevenue = $shippingAddress->getBaseShippingInclTax();
+        if (!is_null($deliveryRevenue)) {
+            $this->setData('DeliveryRevenue', number_format($deliveryRevenue, 2, '.', ''));
+            $resultAttributes[] = 'DeliveryRevenue';
+        }
+
+        $discountAmount = $shippingAddress->getBaseDiscountAmount();
+        if (!is_null($discountAmount)) {
+            $this->setData('Discount', number_format($discountAmount, 2, '.', ''));
+            $resultAttributes[] = 'Discount';
+        }
+
+        $this->setData('Id', $quoteId);
+        $this->setData('OrderLines', $this->_prepareQuoteLines($quote, 0));
+
+        $this->setData('Revenue', number_format($revenue, 2, '.', ''));
+
+        return $this->toArray($resultAttributes);
+    }
+
     private function _prepareQuoteLines($quote, $addedItemId)
     {
         $quoteItems = $quote->getAllVisibleItems();

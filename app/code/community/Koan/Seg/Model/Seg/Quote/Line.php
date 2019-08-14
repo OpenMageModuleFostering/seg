@@ -49,7 +49,8 @@ class Koan_Seg_Model_Seg_Quote_Line extends Varien_Object
             $price = $originalPrice;
         }
 
-        $this->setData('Quantity', number_format($qty, 2, '.', ''));
+//        $this->setData('Quantity', number_format($qty, 2, '.', ''));
+        $this->setData('Quantity', intval($qty));
         $this->setData('Id', $item->getProductId());
         $this->setData('ImageUrl', $product->getImageUrl());
 
@@ -96,32 +97,40 @@ class Koan_Seg_Model_Seg_Quote_Line extends Varien_Object
             'Price',
         );
 
-        $brands = $this->_getHelper()->getProductBrands($product, $item->getStoreId());
-        if (!empty($brands)) {
-            $this->setData('Brands', $brands);
-            $outputAttributes[] = 'Brands';
-        }
+        $tags = $this->_getHelper()->getProductTags($product, $item->getStoreId());
 
         if (!empty($variantName)) {
             $outputAttributes[] = 'VariantName';
         }
 
-        $catIds = $product->getCategoryIds();
-        $categoriesResult = array();
-        if ($catIds AND is_array($catIds) AND count($catIds)) {
-            foreach ($catIds as $catId) {
-                $category = Mage::getModel('catalog/category')
-                    ->setStoreId($item->getStoreId())
-                    ->load($catId);
+//        $catIds = $product->getCategoryIds();
+//        if ($catIds AND is_array($catIds) AND count($catIds)) {
+//            foreach ($catIds as $catId) {
+//                $category = Mage::getModel('catalog/category')
+//                    ->setStoreId($item->getStoreId())
+//                    ->load($catId);
+//
+//                if ($category AND $category->getId()) {
+//                    $tags[] = $category->getName();
+//                }
+//            }
+//        }
 
-                if ($category AND $category->getId()) {
-                    $categoriesResult[] = $category->getName();
-                }
+        if ($parentProduct) {
+            $categories = Mage::helper('koan_seg')->getAllProductCategories($parentProduct);
+        } else {
+            $categories = Mage::helper('koan_seg')->getAllProductCategories($product);
+        }
+
+        if ($categories AND is_array($categories) AND count($categories)) {
+            foreach ($categories as $catName) {
+                $tags[] = $catName;
             }
         }
-        if (count($categoriesResult)) {
-            $this->setData('Categories', $categoriesResult);
-            $outputAttributes[] = 'Categories';
+
+        if (!empty($tags)) {
+            $this->setData('Tags', @array_values($tags));
+            $outputAttributes[] = 'Tags';
         }
 
         if ($isAdded == true) {
