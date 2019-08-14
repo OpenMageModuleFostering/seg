@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+
+<layout>
+    <default>
+        <reference name="head">
+            <block type="koan_seg/header" name="seg.tracking" template="seg/config.phtml"/>
+        </reference>
+        <reference name="before_body_end">
+            <block type="koan_seg/track" name="seg.track" template="seg/tracking.phtml"/>
+        </reference>
+    </default>
+</layout>

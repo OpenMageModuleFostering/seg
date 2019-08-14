@@ -1,0 +1,8 @@
+<config>
+  <modules>
+    <Koan_Seg>
+      <active>true</active>
+      <codePool>community</codePool>
+    </Koan_Seg>
+  </modules>
+</config>

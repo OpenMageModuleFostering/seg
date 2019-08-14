@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<config>
+    <acl>
+        <resources>
+            <all>
+                <title>Allow Everything</title>
+            </all>
+            <admin>
+                <children>
+                    <system>
+                        <children>
+                            <config>
+                                <children>
+                                    <koan_seg translate="title">
+                                        <title>Seg</title>
+                                        <sort_order>100</sort_order>
+                                    </koan_seg>
+                                </children>
+                            </config>
+                        </children>
+                    </system>
+                    <seg translate="title" module="koan_seg">
+                        <children>
+                            <exporter>
+                                <title>Exporter</title>
+                            </exporter>
+                        </children>
+                        <sort_order>1</sort_order>
+                    </seg>
+                </children>
+            </admin>
+        </resources>
+    </acl>
+    <menu>
+        <seg module="koan_seg">
+            <title>Seg</title>
+            <sort_order>100</sort_order>
+            <children>
+                <exporter module="koan_seg">
+                    <title>Exporter</title>
+                    <sort_order>1</sort_order>
+                    <action>adminhtml/seg/exporter</action>
+                </exporter>
+            </children>
+        </seg>
+    </menu>
+</config>

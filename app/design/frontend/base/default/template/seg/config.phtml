@@ -1,0 +1,9 @@
+<script type="text/javascript">
+    ;(function () { var a, b, c, e = window, f = document, g = arguments, h = "script", i = ["config", "track", "identify", "callback"], j = function () { var a, b = this; for (b._s = [], a = 0; a < i.length; a++) !function (a) { b[a] = function () { return b._s.push([a].concat(Array.prototype.slice.call(arguments, 0))), b } }(i[a]) }; for (e._seg = e._seg || {}, a = 0; g.length > a; a++) e._seg[g[a]] = e[g[a]] = e[g[a]] || new j; b = f.createElement(h), b.async = 1, b.src = "https://segapp.blob.core.windows.net/release/seg-analytics.min.js", c = f.getElementsByTagName(h)[0], c.parentNode.insertBefore(b, c) }("seg"));
+
+    <?php $currentStore = Mage::app()->getStore()->getId() ?>
+    // Unique website identifying code
+    seg.config({
+        site: "<?php echo Mage::helper('koan_seg')->getWebsiteId($currentStore) ?>"
+    });
+</script>

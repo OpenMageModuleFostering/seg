@@ -1,0 +1,23 @@
+<script>
+    <?php if($customerData = $this->getCustomerData()): ?>
+    seg.identify(<?php echo $customerData ?>);
+    <?php endif; ?>
+    <?php if($dob = $this->getCustomerDob()): ?>
+    seg.identify("DateOfBirth", new Date("<?php echo $dob ?>"));
+    <?php endif; ?>
+
+    <?php $trackingEventCode = $this->getTrackingEventCode() ?>
+    <?php if ($trackingEventCode AND is_array($trackingEventCode)): ?>
+        <?php if (array_key_exists('event', $trackingEventCode) AND array_key_exists('data', $trackingEventCode)): ?>
+            <?php if (is_null($trackingEventCode['data'])): ?>
+                seg.track();
+            <?php else: ?>
+                seg.track("<?php echo $trackingEventCode['event'] ?>", <?php echo $trackingEventCode['data'] ?>);
+            <?php endif; ?>
+        <?php else: ?>
+            seg.track();
+        <?php endif; ?>
+    <?php else: ?>
+        seg.track();
+    <?php endif; ?>
+</script>
