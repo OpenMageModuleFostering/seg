@@ -1,7 +1,7 @@
 {
-    "name": "OpenMageModuleFostering\/Seg",
+    "name": "openmage-module-fostering\/seg",
     "type": "magento-module",
-    "license": "Open-Software-License-(OSL-3.0)",
+    "license": "OSL-3.0",
     "homepage": "",
     "description": "Seg unlocks the potential of your Magento user data to supercharge your email marketing. Install free today.",
     "authors": [

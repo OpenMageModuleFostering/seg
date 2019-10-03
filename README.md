@@ -1,3 +1,5 @@
+
+
 ## Original Package Description
 
 Seg unlocks the potential of your Magento user data to supercharge your email marketing. Install free today.
